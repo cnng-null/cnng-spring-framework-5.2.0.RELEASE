@@ -34,6 +34,7 @@ public class TestIoc {
 		AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(TestIocConfiguration.class);
 		Student student = (Student)annotationConfigApplicationContext.getBean("student");
 		System.out.println(student);
+
 	}
 
 }
