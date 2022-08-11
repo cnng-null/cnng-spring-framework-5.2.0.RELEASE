@@ -516,40 +516,56 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
+			// 预刷新 或准备刷新
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			// 通知子类刷新内部bean工厂 那到底是刷新了还是没刷新呢?
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			// 准备bean工厂以在此上下文中使用 意思是在这一步已经有bean工厂了吗? 应该有了 因为上一步就返回获得了一个beanFactory
+			// 突然想到之前看到的beanFactory和applicationContext的区别 这里为什么要有beanFactory?
+
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
+				// AbstractApplicationContext抽象类中的方法 说明就是给子类实现的【名称叫postProcess 这里怎么看都不像是对bean的后置处理器】
+				// 然后突然意识到 postProcess后面的是BeanFactory 加上上面已经获得beanFactory了 所以这里是对beanFactory的后置处理器
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				// 这个怎么理解 beanFactory也是注入在ioc的bean吗 看这个方法中的注释是 实例化所有注册的beanFactory
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				// 这个光看上面的注释 也不明白是什么意思 点到方法中的注释 还是实例化所有注册的beanFactory
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
+				// 初始化上下文中的消息源 不晓得这有什么用 【而已单独抽了一个方法 说明做的这个事情应该还是比较重要的】
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				// 初始化上下文中的事件监听 好像记得国际化什么的东西在这个里面吧
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				// AbstractApplicationContext抽象类中的方法 说明就是给子类实现的 【不过这也是猜的 说不定这个时候是走到某个实现类中去了呢。。。】
 				onRefresh();
 
 				// Check for listener beans and register them.
+				// 检查监听器bean并注册 这里还是在对监听器做处理?
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				// 实例化所有非懒加载的单例 意思是这里是实例化其他的bean了吗
+				// 是的 这里有doGetBean()和doCreateBean()这里是对bean真正做操作 做处理的地方了
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
+				//发布事件 "事件"这个词反复出现几次了 事件到底是个什么玩意? 能代指什么?
 				finishRefresh();
 			}
 
@@ -847,8 +863,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Finish the initialization of this context's bean factory,
 	 * initializing all remaining singleton beans.
 	 */
+	// [nm bean Factory到现在才完成初始化? 那还没实例化吧。。。 之前上面的方法就已经有注释写对beanFactory实例化了啊。。。]
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
+		// 反正这里就是在判断beanFactory里面是否有包含这个key的bean
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(

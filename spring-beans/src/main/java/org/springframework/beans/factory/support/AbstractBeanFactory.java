@@ -400,8 +400,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	@Override
 	public boolean containsBean(String name) {
+		// beanName其实是别名 bean的别名
 		String beanName = transformedBeanName(name);
+		// 如果一级缓存(singletonObjects)中有或beanDefinitionMap中有
 		if (containsSingleton(beanName) || containsBeanDefinition(beanName)) {
+			// 非factoryBean就是true 就返回【BeanFactoryUtils.isFactoryDereference 就可以做到通过前缀判断了 为什么还要后面的isFactoryBean呢 怕工厂或】
 			return (!BeanFactoryUtils.isFactoryDereference(name) || isFactoryBean(name));
 		}
 		// Not found -> check parent.
@@ -1067,16 +1070,22 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	@Override
 	public boolean isFactoryBean(String name) throws NoSuchBeanDefinitionException {
+		// 获取bean的别名
 		String beanName = transformedBeanName(name);
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null) {
 			return (beanInstance instanceof FactoryBean);
 		}
+		// 这里就是递归了 如果从一级缓存中(应该是 还没看上面的方法)找不到实例且父beanFactory是ConfigurableBeanFactory子类 就获取父beanFactory【这里为什么又是beanFactory了?】再判断
+		// 但是再调这样一个相同的方法 有什么区别吗? 看这外面的代码没什么处理 上面的getSingleton中好像有this 那换对象了(this表示当前调用对象) 结果可能是不一样
 		// No singleton instance found -> check bean definition.
 		if (!containsBeanDefinition(beanName) && getParentBeanFactory() instanceof ConfigurableBeanFactory) {
 			// No bean definition found in this factory -> delegate to parent.
 			return ((ConfigurableBeanFactory) getParentBeanFactory()).isFactoryBean(name);
 		}
+		// 这里不想看了 不看了吧。。。 tm看refresh()中的finishBeanFactoryInitialization()方法 看了半天
+		// 一行行看 可能刚开始觉得还好 后面 一个方法套一个 一行行看 谁受的了 看了前面忘后面
+		// 先看大致结构 知道方法在做什么 方法中的方法在做什么就好 具体怎么实现 实现中做了什么 先不管如何实现 当心中有一个大致结构后 再看代码实现 先揪逻辑和结构
 		return isFactoryBean(beanName, getMergedLocalBeanDefinition(beanName));
 	}
 

@@ -67,6 +67,7 @@ public abstract class BeanFactoryUtils {
 	 * @return whether the given name is a factory dereference
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
+	// 判断是不是factoryBean
 	public static boolean isFactoryDereference(@Nullable String name) {
 		return (name != null && name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX));
 	}
@@ -78,12 +79,18 @@ public abstract class BeanFactoryUtils {
 	 * @return the transformed name
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
+	// 判断传进来的这个bean 是一个普通的bean还是factoryBean【之前就听过这个点 好像源码实战里面也有讲 那个人的那种手动造的方式 真的挺好 一点一点入手 让你去做 去理解】
+	// 所以这个方法综上就是判断 传进来的name是否是以&开头 如果不是就直接返回name  如果是就把name前面的所有&符号去掉再返回
 	public static String transformedBeanName(String name) {
 		Assert.notNull(name, "'name' must not be null");
+		// factoryBean的bean名称前面带有&
+		// 如果当前是普通bean的名称 就返回bean的名称【也就是当前name】
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
+			// 这里搞个循环玩蛇皮? 只是对map中如果不存在这个name的做处理 那也就只有一个啊 为什么要是个map?
+			// 除非传进来的name是&&xxx 开头有多个&符合 不然循环是用不上的
 			do {
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());
 			}

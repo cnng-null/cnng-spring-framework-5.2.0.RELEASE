@@ -257,6 +257,7 @@ public class AnnotatedBeanDefinitionReader {
 
 		abd.setInstanceSupplier(supplier);
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		// 这里设置了作用范围【正常设置的应该就是 singleton 单例的】
 		abd.setScope(scopeMetadata.getScopeName());
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
@@ -280,7 +281,9 @@ public class AnnotatedBeanDefinitionReader {
 			}
 		}
 
+		// BeanDefinitionHolder 或BeanDefinition 这些目前都是对于配置类来的 【看到读取到了@Configuration和@ComponentScan两个注解】
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		// 看到proxy就想到代理 然后代理有aop和cglib两种 这里面有使用到aop相关的 不过还是不知道是干嘛的
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}

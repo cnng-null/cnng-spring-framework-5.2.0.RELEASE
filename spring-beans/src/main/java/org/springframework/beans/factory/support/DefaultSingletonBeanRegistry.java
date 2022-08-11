@@ -174,14 +174,27 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+		// 通过bean的名称(别名)从一级缓存中找是否有实例(对象) 【但是这个时候应该是只初始化了 并没有实例化的吧
+		// tm网上的文章看到是説完整的bean 那就应该是已经都初始化过了吧  説二级缓存中才是不完整的bean 但是这些从注释中看不出来 只是大致了解三个缓存是啥
+		// 尤其是一 二级缓存  从描述上 除了二级説是早期的单例对象 但是不明白早期是什么意思(创建的bean先放二级缓存中 bean实例化好了(包括引用) 就再放入一级缓存中?)
+		// 所以説二级缓存里面存的是"早期"的bean 对象】
 		Object singletonObject = this.singletonObjects.get(beanName);
+		// 如果上面获取到了单例对象是空的且是当前正在创建的单例对象
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
+				// 从二级缓存中取
 				singletonObject = this.earlySingletonObjects.get(beanName);
+				// 如果二级缓存中没有且"允许创建早期引用"是true
 				if (singletonObject == null && allowEarlyReference) {
+					// 从三级缓存中通过beanName取factory? 为什么用beanName也能取到factory?
+					// 啊 三级缓存中到底是啥 一 二 三级中 key都是beanName 但是一二级缓存的value是bean 三级缓存中的value是factory
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+					// 如果从三级缓存中取到了
 					if (singletonFactory != null) {
+						// 这个getObject不懂是在搞什么 也看不懂。。。 【首先是一个函数式接口】
+						// 或者这里就当成是一个接口? 然后其他类实现了这个接口?
 						singletonObject = singletonFactory.getObject();
+						// 从三级缓存中取到了存二级缓存中了 然后把三级缓存中删除了
 						this.earlySingletonObjects.put(beanName, singletonObject);
 						this.singletonFactories.remove(beanName);
 					}
