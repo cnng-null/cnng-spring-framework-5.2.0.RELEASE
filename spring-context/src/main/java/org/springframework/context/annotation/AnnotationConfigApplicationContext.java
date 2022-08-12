@@ -89,6 +89,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		this();
 		// 这注册也不知道注册了些什么玩意
 		register(componentClasses);
+		// 重点方法 核心都在这个里面
 		refresh();
 	}
 

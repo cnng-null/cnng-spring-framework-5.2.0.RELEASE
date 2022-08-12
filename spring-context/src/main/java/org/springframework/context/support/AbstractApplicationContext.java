@@ -866,7 +866,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	// [nm bean Factory到现在才完成初始化? 那还没实例化吧。。。 之前上面的方法就已经有注释写对beanFactory实例化了啊。。。]
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
-		// 反正这里就是在判断beanFactory里面是否有包含这个key的bean
+		// beanFactory.containsBean是判断有没有对应这个key的bean
+		// beanFactory.isTypeMatch判断类型是否匹配 其实也不太懂在搞什么[看到有判断是否是"原始"数据类型[不是基本数据类型]int double void什么的]但是还做了其他 不太懂了
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -876,11 +877,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Register a default embedded value resolver if no bean post-processor
 		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
+		// 字面注释是 判断之前在beanFactory有没有注册默认的后置处理嚣 如果没有就添加一个默认的解析嚣 主要是用来解析注解上属性的值的
+		// [但是不知道 有什么用。。。]
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
 
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
+		// 看注释都难以理解。。。 不知道是干嘛的
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
 			getBean(weaverAwareName);
@@ -893,6 +897,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
+		// 预实例化所有剩余的(非懒加载)单例
+		// 这个就是重点方法喽 重头戏都在这个里面
 		beanFactory.preInstantiateSingletons();
 	}
 

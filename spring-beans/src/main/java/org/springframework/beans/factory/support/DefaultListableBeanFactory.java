@@ -850,18 +850,29 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
+		// 上面的注释看不太懂 将this中的beanDefinitionNames复制一份放到 beanNames这个集合中了
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
 		// Trigger initialization of all non-lazy singleton beans...
+		// 这里还只是初始化 所以后面还会实例化
 		for (String beanName : beanNames) {
+			// 假装自己看得懂/看懂了吧 看方法名字面理解是获取合并地本地BeanDefinition BeanDefinition是什么 bean描述? 还是bean定义信息?
+			// 最终是合并到一个根beanDefinition里面了吗 还是什么?[mmp 把这些问题都记录下来? 或快速看一遍 看一部分的结构体系 再回过来看细节实现]
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+			// 上面获取到的bd还只在这个if上用到了 符合条件就进去了
+			// 字面意思 RootBeaanDefinition如果是非抽象且是单例且不是懒加载就进入if中
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
+				// nm 这里又判断beanName是否是factoryBean了。。。 这玩意这么重要吗 到处都有判断
+				// if else说明factoryBean和普通bean初始化/实例化的不一样
+				// 看到if中是bean如果是factoryBean的子类(或其他类的子类或接口实现) 再根据情况判断"isEagerInit"[急于初始化]如果为true才获取bean
+				// 如果非factoryBean直接就getBean了
 				if (isFactoryBean(beanName)) {
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						final FactoryBean<?> factory = (FactoryBean<?>) bean;
 						boolean isEagerInit;
 						if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
+							// 这个doPrivileged方法是native方法。。。是内库还是什么库里面的本地方法  是看不到实现的。。。
 							isEagerInit = AccessController.doPrivileged((PrivilegedAction<Boolean>)
 											((SmartFactoryBean<?>) factory)::isEagerInit,
 									getAccessControlContext());
@@ -871,11 +882,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
 						if (isEagerInit) {
+							// 假设前面的都看过也看懂了 终于来到了和bean有关具体一点的方法了。。。
 							getBean(beanName);
 						}
 					}
 				}
 				else {
+					// 非factoryBean就直接getBean了
 					getBean(beanName);
 				}
 			}

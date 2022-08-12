@@ -197,8 +197,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	// Implementation of BeanFactory interface
 	//---------------------------------------------------------------------
 
+	// 看了下有getBean()方法 有四个重载方法
 	@Override
 	public Object getBean(String name) throws BeansException {
+		// 众所周知 spring中带do开头的才是真正做事的方法 所以doGetBean()才是真正获取bean的方法
 		return doGetBean(name, null, null, false);
 	}
 
@@ -242,6 +244,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredType,
 			@Nullable final Object[] args, boolean typeCheckOnly) throws BeansException {
 
+		// transformed 翻译过来是变身 这tm的  理解成转换或转变?
 		final String beanName = transformedBeanName(name);
 		Object bean;
 
