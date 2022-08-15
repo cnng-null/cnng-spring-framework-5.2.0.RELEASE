@@ -894,6 +894,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 看字面意思是为所有合适的bean触发初始化后回调【不过也不明白是在搞什么】
 		// Trigger post-initialization callback for all applicable beans...
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName);
@@ -901,6 +902,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				final SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton) singletonInstance;
 				if (System.getSecurityManager() != null) {
 					AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+						// 有好几个实现类 不知道应该调那个实现类 看着都不太像
 						smartSingleton.afterSingletonsInstantiated();
 						return null;
 					}, getAccessControlContext());

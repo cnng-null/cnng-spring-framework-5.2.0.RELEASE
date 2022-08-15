@@ -249,9 +249,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		// 获取bean实例 看里面的方法 是先从一级缓存中找 如果一级缓存中没有 就从二级缓存中找 没有就再找三级缓存
 		Object sharedInstance = getSingleton(beanName);
+		// args后面有什么用吗 看这个方法 args就是空的
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
+				// 这里是说如果是正在创建的bean 会导致循环引用还是什么 【that is not fully initialized yet - a consequence of a circular reference】
+				// 但是看这句翻译出来的 又不像
 				if (isSingletonCurrentlyInCreation(beanName)) {
 					logger.trace("Returning eagerly cached instance of singleton bean '" + beanName +
 							"' that is not fully initialized yet - a consequence of a circular reference");
@@ -260,9 +264,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			// 这个方法又是在玩啥子。。。获取bean实例的对象? bean实例 不就相当于是对象了吗?【调用的也比较多 且里面还有其他方法 看起来是一个比较重要的方法】
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
+		// 这里就说明没有获取到bean实例【或者说原来没有创建过 所以取不到 所以现在要创建】
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
@@ -274,12 +280,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
+				// 不明白这里又为什么要找父类
 				String nameToLookup = originalBeanName(name);
 				if (parentBeanFactory instanceof AbstractBeanFactory) {
 					return ((AbstractBeanFactory) parentBeanFactory).doGetBean(
 							nameToLookup, requiredType, args, typeCheckOnly);
 				}
 				else if (args != null) {
+					// 这里args不为空也去通过父类.getBean()方法 下面两个else if和else也是去调用父类.getBean()方法
 					// Delegation to parent with explicit args.
 					return (T) parentBeanFactory.getBean(nameToLookup, args);
 				}
@@ -293,11 +301,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			if (!typeCheckOnly) {
+				// 为什么这个if中会判断如果不在已创建的bean set集合中 就直接放集合中去呢。。。
 				markBeanAsCreated(beanName);
 			}
 
 			try {
+				// 这里就是创建bean了 整个都用try包起来了
 				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				// 这个方法简单啊 只判断了BeanDefinition是不是abstract(抽象) 如何是 就直接拋异常
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
@@ -1719,7 +1730,12 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * creation of the specified bean.
 	 * @param beanName the name of the bean
 	 */
+	// Created  是创建的意思 ed是过去时还是什么 不记得 或就不知道
 	protected void markBeanAsCreated(String beanName) {
+		// 还有alreadyCreated吗 应该也是一个map【是set... set的特性是不会重复】 居然连已经创建过的bean都有个地方存放
+		// 也是啊 如果没有容器存放有那些bean创建了 spring怎么知道那些bean创建了 那些bean没有创建呢
+		// 这里判断如果bean不在已经创建的set中 为什么就添加进去了? 是因为后面要创建吗? 但是这个方法在if中啊 说明如果不满足条件就不会的
+		// 不太明白这里在做什么 。。。
 		if (!this.alreadyCreated.contains(beanName)) {
 			synchronized (this.mergedBeanDefinitions) {
 				if (!this.alreadyCreated.contains(beanName)) {
